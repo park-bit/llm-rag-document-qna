@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+sentence-transformers
+faiss-cpu
+PyPDF2
+pdf2image
+pytesseract
+openai

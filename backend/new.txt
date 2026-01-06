@@ -1,0 +1,15 @@
+Yep. That output is pure cursed text, not AI hallucination. Your pipeline is working, but you fed it binary garbage and it politely embedded chaos.
+
+What actually happened (no sugarcoating)
+
+You uploaded a PDF or non-text file
+
+It got decoded as UTF-8 anyway
+
+Result: binary noise like \u0000\u0019\u007f
+
+FAISS embedded that nonsense
+
+Gemini tried to answer using demon language
+
+So congrats, you built a RAG system that can talk to corrupted memory dumps. Very cyberpunk. Not useful.
