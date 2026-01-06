@@ -5,7 +5,7 @@ print(">>> USING backend.llm.generate FROM", __file__)
 
 logger = logging.getLogger("llm")
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_API_KEY = "add your api key"
 
 
 if not GROQ_API_KEY:
