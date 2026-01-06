@@ -1,11 +1,10 @@
-// src/app/page.js
 "use client";
 
 import { useState } from "react";
 
 const API = typeof window !== "undefined" && window.location.hostname === "localhost"
   ? "http://127.0.0.1:8000"
-  : "http://127.0.0.1:8000"; // change if your backend sits elsewhere
+  : "http://127.0.0.1:8000"; 
 
 export default function Home() {
   const [file, setFile] = useState(null);

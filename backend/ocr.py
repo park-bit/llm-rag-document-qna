@@ -1,4 +1,3 @@
-# backend/ocr.py
 import re
 from io import BytesIO
 

@@ -25,19 +25,17 @@ def generate(prompt: str, retrieved_texts=None) -> str:
     Output: plain text response
     """
     try:
-        # Build messages; include provided retrieved_texts as additional context when available.
+
         messages = [
             {"role": "system", "content": "You are a precise document analysis assistant."},
         ]
 
         if retrieved_texts:
-            # If retrieved_texts is a list, join; otherwise coerce to str
             if isinstance(retrieved_texts, (list, tuple)):
                 context_block = "\n\n".join(str(t) for t in retrieved_texts)
             else:
                 context_block = str(retrieved_texts)
 
-            # Add the context as a user message before the prompt so model sees it.
             messages.append({"role": "user", "content": f"Context:\n{context_block}"})
 
         messages.append({"role": "user", "content": prompt})

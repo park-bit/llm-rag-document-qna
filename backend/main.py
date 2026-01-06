@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 vector_index = None
-doc_chunks: List[dict] = []   
+doc_chunks: List[dict] = []
 
 
 def _safe_parse_json(raw: str):
@@ -41,27 +41,23 @@ def _safe_parse_json(raw: str):
     if not raw:
         return None
     raw = raw.strip()
-    # strip common markdown/json fences
     import re
     import json as _json
 
     raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.I)
     raw = re.sub(r"\s*```$", "", raw)
 
-    # Try direct parse first
     try:
         return _json.loads(raw)
     except Exception:
         pass
 
-    # Find the first JSON object or array (non-greedy)
     m = re.search(r"(\{(?:.|\s)*?\}|\[(?:.|\s)*?\])", raw, flags=re.S)
     if m:
         candidate = m.group(1)
         try:
             return _json.loads(candidate)
         except Exception:
-            # Attempt a simple cleanup: remove trailing commas before } or ]
             candidate2 = re.sub(r",\s*([}\]])", r"\1", candidate)
             try:
                 return _json.loads(candidate2)
@@ -88,7 +84,7 @@ async def upload(file: UploadFile):
     filename = (file.filename or "").lower()
     if filename.endswith(".pdf"):
         pages = extract_text_from_pdf_bytes(raw)
-        total_chars = sum(len(p.get("text","")) for p in pages)
+        total_chars = sum(len(p.get("text", "")) for p in pages)
         if total_chars < 200:
             try:
                 ocr_pages = ocr_pdf_bytes(raw, dpi=300, psm=6)
@@ -97,7 +93,6 @@ async def upload(file: UploadFile):
             except Exception as e:
                 logger.warning("OCR failed or not available: %s", e)
     else:
-        # plain text
         try:
             txt = raw.decode("utf-8", errors="ignore")
             pages = [{"page": 1, "text": txt}]
@@ -108,7 +103,7 @@ async def upload(file: UploadFile):
         raise HTTPException(status_code=400, detail="File empty or unreadable (pdf text + OCR failed)")
 
     for p in pages:
-        p["text"] = clean_ocr_text(p.get("text",""))
+        p["text"] = clean_ocr_text(p.get("text", ""))
 
     try:
         vector_index, doc_chunks = build_vector_store(pages)
@@ -141,26 +136,26 @@ def analyze_certificate(payload: QueryPayload, request: Request):
     context_block = "\n\n".join(context_texts)
 
     prompt = f"""
-You are a document analyzer specialized in Indian government-style certificates.
+    You are a document analyzer specialized in Indian government-style certificates.
 
-INSTRUCTIONS:
-- Extract the following fields and return STRICT JSON ONLY (no extra text).
-- If a field is not present or not readable, set it to null.
-- If the field is present but ambiguous, return the best guess and add a "confidence" subfield if possible.
+    INSTRUCTIONS:
+    - Extract the following fields and return STRICT JSON ONLY (no extra text).
+    - If a field is not present or not readable, set it to null.
+    - If the field is present but ambiguous, return the best guess and add a "confidence" subfield if possible.
 
-Fields to extract:
-- person_name
-- father_name
-- date_of_birth
-- category_or_caste
-- certificate_type
-- issuing_authority
-- issue_date
-- document_number
+    Fields to extract:
+    - person_name
+    - father_name
+    - date_of_birth
+    - category_or_caste
+    - certificate_type
+    - issuing_authority
+    - issue_date
+    - document_number
 
-Context:
-{context_block}
-"""
+    Context:
+    {context_block}
+    """
 
     raw_answer = generate(prompt, retrieved_texts=context_texts) or ""
 
@@ -174,7 +169,6 @@ Context:
 
     parsed = _safe_parse_json(raw_answer)
 
-    # If the model returned JSONL or a JSON per-line, try parsing lines too
     if parsed is None:
         for line in (ln.strip() for ln in raw_answer.splitlines() if ln.strip()):
             parsed = _safe_parse_json(line)
@@ -203,15 +197,15 @@ def query(payload: QueryPayload, request: Request):
     context_block = "\n\n".join(context_texts)
 
     prompt = f"""
-You are a helpful document assistant. Use only the provided context to answer.
-If the answer is not in the document, say "Not mentioned in document".
+    You are a helpful document assistant. Use only the provided context to answer.
+    If the answer is not in the document, say "Not mentioned in document".
 
-Context:
-{context_block}
+    Context:
+    {context_block}
 
-Question:
-{payload.question}
-"""
+    Question:
+    {payload.question}
+    """
 
     answer = generate(prompt, retrieved_texts=context_texts)
     answer = answer.replace("\\n", "\n").strip()
@@ -246,14 +240,14 @@ def fill_form(payload: FillFormPayload, request: Request):
     fields_block = "\n".join(f"- {f}" for f in payload.fields)
 
     prompt = f"""
-You are a form-filling assistant. Extract the following fields and return STRICT JSON with these keys:
-{fields_block}
+    You are a form-filling assistant. Extract the following fields and return STRICT JSON with these keys:
+    {fields_block}
 
-Context:
-{context_block}
+    Context:
+    {context_block}
 
-If a field is missing or unreadable, use null.
-"""
+    If a field is missing or unreadable, use null.
+    """
 
     raw = generate(prompt, retrieved_texts=context_texts) or ""
 
@@ -262,7 +256,6 @@ If a field is missing or unreadable, use null.
 
     parsed = _safe_parse_json(raw)
 
-    # also try line-by-line parsing for JSONL responses
     if parsed is None:
         for line in (ln.strip() for ln in raw.splitlines() if ln.strip()):
             parsed = _safe_parse_json(line)
