@@ -1,4 +1,3 @@
-# backend/llm.py
 import os
 import logging
 from groq import Groq
@@ -6,7 +5,7 @@ print(">>> USING backend.llm.generate FROM", __file__)
 
 logger = logging.getLogger("llm")
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or "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"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or ""
 
 
 if not GROQ_API_KEY:
